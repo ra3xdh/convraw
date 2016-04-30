@@ -1,0 +1,12 @@
+CMakeCache.txt
+cmake_*
+CMakeFiles
+*.txt
+*.o
+raw2any
+Makefile
+*.csv
+*.dat
+*~
+*.user
+
