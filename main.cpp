@@ -8,8 +8,8 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    QList< QList<double> > sim_points;
-    QStringList VarList;
+    std::vector< std::vector<double> > sim_points;
+    std::vector<std::string> VarList;
     bool isComplex;
 
     raw2any::parseNgSpiceSimOutput(argv[1],sim_points,VarList,isComplex);

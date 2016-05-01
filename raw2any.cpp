@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <fstream>
 
 #include "raw2any.h"
@@ -6,16 +7,19 @@
 
 namespace raw2any {
 
-    void extractBinSamples(QDataStream &dbl, QList<QList<double> > &sim_points,
+    void extractBinSamples(std::ifstream &dbl, std::vector< std::vector<double> > &sim_points,
                                 int NumPoints, int NumVars, bool isComplex);
-    bool extractASCIISamples(QString &lin, QTextStream &ngsp_data,
-                                  QList<QList<double> > &sim_points, int NumVars, bool isComplex);
+    bool extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
+                             std::vector< std::vector<double> > &sim_points,
+                             int NumVars, bool isComplex);
 }
 
+std::string section(std::string s, std::string sep, int num);
 
-void raw2any::parseNgSpiceSimOutput(QString ngspice_file,
-                                    QList< QList<double> > &sim_points,
-                                    QStringList &var_list, bool &isComplex)
+
+void raw2any::parseNgSpiceSimOutput(char *ngspice_file,
+                                    std::vector < std::vector <double> > &sim_points,
+                                    std::vector < std::string > &var_list, bool &isComplex)
 {
     isComplex = false;
     bool isBinary = false;
@@ -23,42 +27,42 @@ void raw2any::parseNgSpiceSimOutput(QString ngspice_file,
     int bin_offset = 0;
     QByteArray content;
 
-    QFile ofile(ngspice_file);
-    if (ofile.open(QFile::ReadOnly)) {
-        //QTextStream ts(&ofile);
-        content = ofile.readAll();
-        ofile.close();
-    }
+    std::ifstream ngsp_data;
+    std::ifstream ngsp_data_bin;
+    ngsp_data.open(ngspice_file);
+    ngsp_data_bin.open(ngspice_file,std::ios::binary);
+    if (!ngsp_data.is_open()) return;
+    if (!ngsp_data_bin.is_open()) return;
 
-    QTextStream ngsp_data(&content);
     sim_points.clear();
     bool start_values_sec = false;
     int NumVars=0; // Number of dep. and indep.variables
-    while (!ngsp_data.atEnd()) { // Parse header;
-        QRegExp sep("[ \t,]");
-        QString lin = ngsp_data.readLine();
-        if (lin.isEmpty()) continue;
-        if (lin.contains("Flags")&&lin.contains("complex")) { // output consists of
+    std::string lin;
+    while (std::getline(ngsp_data,lin)) { // Parse header;
+        if (lin.empty()) continue;
+        if ((lin.find("Flags")!=std::string::npos)
+             &&(lin.find("complex")!=std::string::npos)) { // output consists of
             isComplex = true; // complex numbers
             continue;         // maybe ac_analysis
         }
-        if (lin.contains("No. Variables")) {  // get number of variables
-            NumVars=lin.section(sep,2,2,QString::SectionSkipEmpty).toInt();
+        if (lin.find("No. Variables:")!=std::string::npos) {  // get number of variables
+            NumVars=std::stoi(section(lin," ",2));
             continue;
         }
-        if (lin.contains("No. Points:")) {  // get number of variables
-            NumPoints=lin.section(sep,2,2,QString::SectionSkipEmpty).toInt();
+        if (lin.find("No. Points:")!=std::string::npos) {  // get number of variables
+            NumPoints=std::stoi(section(lin," ",2));
             continue;
         }
         if (lin=="Variables:") {
             var_list.clear();
-            QString indep_var = ngsp_data.readLine().section(sep,1,1,QString::SectionSkipEmpty);
-            var_list.append(indep_var);
+            std::getline(ngsp_data,lin);
+            std::string indep_var = section(lin,"\t",1);
+            var_list.push_back(indep_var);
 
             for (int i=1;i<NumVars;i++) {
-                lin = ngsp_data.readLine();
-                QString dep_var = lin.section(sep,1,1,QString::SectionSkipEmpty);
-                var_list.append(dep_var);
+                std::getline(ngsp_data,lin);
+                std::string dep_var = section(lin,"\t",1);
+                var_list.push_back(dep_var);
             }
             continue;
         }
@@ -68,14 +72,12 @@ void raw2any::parseNgSpiceSimOutput(QString ngspice_file,
         }
         if (lin=="Binary:") {
             isBinary = true;
-            bin_offset = ngsp_data.pos();
+            bin_offset = ngsp_data.tellg();
         }
 
         if (isBinary) {
-            QDataStream dbl(content);
-            dbl.setByteOrder(QDataStream::LittleEndian);
-            dbl.device()->seek(bin_offset);
-            extractBinSamples(dbl, sim_points, NumPoints, NumVars, isComplex);
+            ngsp_data_bin.seekg(bin_offset);
+            extractBinSamples(ngsp_data_bin, sim_points, NumPoints, NumVars, isComplex);
             break;
         }
 
@@ -83,13 +85,16 @@ void raw2any::parseNgSpiceSimOutput(QString ngspice_file,
             extractASCIISamples(lin,ngsp_data,sim_points,NumVars,isComplex);
         }
     }
+
+    ngsp_data.close();
+    ngsp_data_bin.close();
 }
 
-void raw2any::parseSTEPOutput(QString ngspice_file,
-                     QList< QList<double> > &sim_points,
-                     QStringList &var_list, bool &isComplex)
+void raw2any::parseSTEPOutput(char *ngspice_file,
+                     std::vector< std::vector<double> > &sim_points,
+                     std::vector<std::string> &var_list, bool &isComplex)
 {
-    isComplex = false;
+    /*isComplex = false;
     bool isBinary = false;
     int bin_offset = 0;
     QByteArray content;
@@ -167,77 +172,74 @@ void raw2any::parseSTEPOutput(QString ngspice_file,
             if (!extractASCIISamples(lin,ngsp_data,sim_points,NumVars,isComplex)) continue;
         }
 
-    }
+    }*/
 }
 
 
-void raw2any::extractBinSamples(QDataStream &dbl, QList<QList<double> > &sim_points,
+void raw2any::extractBinSamples(std::ifstream &dbl, std::vector< std::vector<double> > &sim_points,
                                 int NumPoints, int NumVars, bool isComplex)
 {
     int cnt = NumPoints;
     while (cnt>0) {
-        QList<double> sim_point;
+        std::vector<double> sim_point;
         double re,im;
-        dbl>>re; // Indep. variable
-        sim_point.append(re);
-        if (isComplex) dbl>>im; // drop Im part of indep.var
+        dbl.read((char *)&re,sizeof(double)); // Indep. variable
+        sim_point.push_back(re);
+        if (isComplex) dbl.read((char *)&im,sizeof(double)); // drop Im part of indep.var
         for (int i=1;i<NumVars;i++) { // first variable is independent
             if (isComplex) {
-                dbl>>re; // Re
-                dbl>>im; // Im
-                sim_point.append(re);
-                sim_point.append(im);
+                dbl.read((char *)&re,sizeof(double)); // Re
+                dbl.read((char *)&im,sizeof(double)); // Im
+                sim_point.push_back(re);
+                sim_point.push_back(im);
             } else {
-                dbl>>re;
-                sim_point.append(re); // Re
+                dbl.read((char *)&re,sizeof(double));
+                sim_point.push_back(re); // Re
             }
         }
-        sim_points.append(sim_point);
+        sim_points.push_back(sim_point);
         cnt--;
     }
 }
 
-bool raw2any::extractASCIISamples(QString &lin, QTextStream &ngsp_data,
-                                  QList<QList<double> > &sim_points, int NumVars, bool isComplex)
+bool raw2any::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
+                                  std::vector< std::vector<double> > &sim_points,
+                                  int NumVars, bool isComplex)
 {
-    QRegExp sep("[ \t,]");
-    QList<double> sim_point;
-    bool ok = false;
-    QRegExp dataline_patter("^ *[0-9]+[ \t]+.*");
-    if (!dataline_patter.exactMatch(lin)) return false;
-    double indep_val = lin.section(sep,1,1,QString::SectionSkipEmpty).toDouble(&ok);
-    //double indep_val = lin.split(sep,QString::SkipEmptyParts).at(1).toDouble(&ok); // only real indep vars
-    if (!ok) return false;
-    sim_point.append(indep_val);
-    for (int i=0;i<NumVars;i++) {
+    std::vector<double> sim_point;
+    /*bool ok = false;
+    QRegExp dataline_patter("^ *[0-9]+[ \t]+.*"); // ???
+    if (!dataline_patter.exactMatch(lin)) return false;*/
+    if (lin.empty()) return false;
+    double indep_val = std::stod(section(lin,"\t",1)); // only real
+    sim_point.push_back(indep_val);
+    for (int i=1;i<NumVars;i++) {
+        std::getline(ngsp_data,lin);
         if (isComplex) {
-            QStringList lst = ngsp_data.readLine().split(sep,QString::SkipEmptyParts);
-            if (lst.count()==2) {
-                double re_dep_val = lst.at(0).toDouble();  // for complex sim results
-                double im_dep_val = lst.at(1).toDouble();  // imaginary part follows
-                sim_point.append(re_dep_val);              // real part
-                sim_point.append(im_dep_val);
-            }
+            double re_dep_val = std::stod(section(lin,",",0));  // for complex sim results
+            double im_dep_val = std::stod(section(lin,",",1));  // imaginary part follows
+            sim_point.push_back(re_dep_val);              // real part
+            sim_point.push_back(im_dep_val);
         } else {
-            double dep_val = ngsp_data.readLine().remove(sep).toDouble();
-            sim_point.append(dep_val);
+            double dep_val = std::stod(lin);
+            sim_point.push_back(dep_val);
         }
     }
-    sim_points.append(sim_point);
+    sim_points.push_back(sim_point);
     return true;
 }
 
 
-void raw2any::writeCSV(char *csv_file, QList<QList<double> > &sim_points,
-                       QStringList &var_list, bool isComplex)
+void raw2any::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_points,
+                       std::vector<std::string> &var_list, bool isComplex)
 {
     std::ofstream csv;
     csv.open(csv_file);
     std::string s;
-    int NVars = var_list.count();
-    int NPoints = sim_points.count();
-    for(QStringList::iterator it = var_list.begin();it != var_list.end(); it++) {
-        s += (*it).toStdString() + ";";
+    int NVars = var_list.size();
+    int NPoints = sim_points.size();
+    for(std::vector<std::string>::iterator it = var_list.begin();it != var_list.end(); it++) {
+        s += (*it) + ";";
     }
     s.erase(s.end()-1);
 
@@ -260,4 +262,27 @@ void raw2any::writeCSV(char *csv_file, QList<QList<double> > &sim_points,
     }
 
     csv.close();
+}
+
+std::string section(std::string s, std::string sep, int num)
+{
+    unsigned int pos = 0;
+    int cnt = 0;
+    std::string token;
+    std::string ss = s;
+    std::string res;
+    res.clear();
+    pos = ss.find_first_not_of(sep);
+    ss.erase(0,pos);
+    while (((pos = ss.find(sep)) != std::string::npos)
+           &&(!ss.empty())) {
+        token = ss.substr(0, pos);
+        if (cnt==num) {
+            res = token;
+            break;
+        }
+        ss.erase(0, pos + sep.length());
+        cnt++;
+    }
+    return res;
 }
