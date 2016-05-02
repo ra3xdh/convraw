@@ -1,10 +1,10 @@
 #include <iostream>
-#include "raw2any.h"
+#include "convraw.h"
 
 int main(int argc, char **argv)
 {
     if (argc<3) {
-        std::cout<<"Usage: raw2any infile outfile\n";
+        std::cout<<"Usage: convraw infile outfile\n";
         exit(1);
     }
 

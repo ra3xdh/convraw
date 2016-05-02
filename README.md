@@ -1,11 +1,11 @@
 ###DESCRIPTION
 
-raw2any is converter of SPICE3f5 raw-Binary and raw-ASCII datasets to other dataset formats.
-CSV only is supported.
+`convraw` is converter of SPICE3f5 raw-Binary and raw-ASCII datasets to other dataset formats.
+CSV only is supported. Use `cmake` to compile it. 
 
 ###Usage
 
 ~~~
-raw2any input.dat output.csv
+convraw input.dat output.csv
 ~~~
 
