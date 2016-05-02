@@ -1,6 +1,9 @@
 #ifndef RAW2ANY_H
 
-#include <QtCore>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <vector>
 
 namespace raw2any {
 
