@@ -25,7 +25,6 @@ void raw2any::parseNgSpiceSimOutput(char *ngspice_file,
     bool isBinary = false;
     int NumPoints = 0;
     int bin_offset = 0;
-    QByteArray content;
 
     std::ifstream ngsp_data;
     std::ifstream ngsp_data_bin;
@@ -94,57 +93,59 @@ void raw2any::parseSTEPOutput(char *ngspice_file,
                      std::vector< std::vector<double> > &sim_points,
                      std::vector<std::string> &var_list, bool &isComplex)
 {
-    /*isComplex = false;
+    isComplex = false;
     bool isBinary = false;
     int bin_offset = 0;
-    QByteArray content;
 
-    QFile ofile(ngspice_file);
-    if (ofile.open(QFile::ReadOnly)) {
-        content = ofile.readAll();
-        ofile.close();
-    }
+    std::ifstream ngsp_data;
+    std::ifstream ngsp_data_bin;
+    ngsp_data.open(ngspice_file);
+    ngsp_data_bin.open(ngspice_file,std::ios::binary);
+    if (!ngsp_data.is_open()) return;
+    if (!ngsp_data_bin.is_open()) return;
 
-    QTextStream ngsp_data(&content);
     sim_points.clear();
     bool start_values_sec = false;
     bool header_parsed = false;
     int NumVars=0; // Number of dep. and indep.variables
     int NumPoints=0; // Number of simulation points
-    while (!ngsp_data.atEnd()) {
-        QRegExp sep("[ \t,]");
-        QString lin = ngsp_data.readLine();
-        if (lin.isEmpty()) continue;
-        if (lin.contains("Plotname:")&&  // skip operating point
-            (lin.contains("DC operating point"))) {
-            for(bool t = false; !t; t = (ngsp_data.readLine().startsWith("Plotname:")));
+    std::string lin;
+    while (std::getline(ngsp_data,lin)) {
+        if (lin.empty()) continue;
+        if ((lin.find("Plotname:")!=std::string::npos)&&  // skip operating point
+            (lin.find("DC operating point")!=std::string::npos)) {
+            while (lin.find("Plotname:")==std::string::npos) getline(ngsp_data,lin);
         }
         if (!header_parsed) {
-            if (lin.contains("Flags")&&lin.contains("complex")) { // output consists of
+            if ((lin.find("Flags")!=std::string::npos)
+                 &&(lin.find("complex")!=std::string::npos)) { // output consists of
                 isComplex = true; // complex numbers
                 continue;         // maybe ac_analysis
             }
-            if (lin.contains("No. Variables")) {  // get number of variables
-                NumVars=lin.section(sep,2,2,QString::SectionSkipEmpty).toInt();
+            if (lin.find("No. Variables:")!=std::string::npos) {  // get number of variables
+                NumVars=std::stoi(section(lin," ",2));
                 continue;
             }
-            if (lin.contains("No. Points:")) {  // get number of variables
-                NumPoints=lin.section(sep,2,2,QString::SectionSkipEmpty).toInt();
-                continue;
-            }
+
             if (lin=="Variables:") {
                 var_list.clear();
-                QString indep_var = ngsp_data.readLine().section(sep,1,1,QString::SectionSkipEmpty);
-                var_list.append(indep_var);
+                std::getline(ngsp_data,lin);
+                std::string indep_var = section(lin,"\t",1);
+                var_list.push_back(indep_var);
 
                 for (int i=1;i<NumVars;i++) {
-                    lin = ngsp_data.readLine();
-                    QString dep_var = lin.section(sep,1,1,QString::SectionSkipEmpty);
-                    var_list.append(dep_var);
+                    std::getline(ngsp_data,lin);
+                    std::string dep_var = section(lin,"\t",1);
+                    var_list.push_back(dep_var);
                 }
                 header_parsed = true;
                 continue;
             }
+        }
+
+        if (lin.find("No. Points:")!=std::string::npos) {  // get number of variables
+            NumPoints=std::stoi(section(lin," ",2));
+            continue;
         }
 
         if (lin=="Values:") {
@@ -153,26 +154,28 @@ void raw2any::parseSTEPOutput(char *ngspice_file,
         }
         if (lin=="Binary:") {
             isBinary = true;
-            bin_offset = ngsp_data.pos();
+            bin_offset = ngsp_data.tellg();
         }
 
         if (isBinary) {
-            QDataStream dbl(content);
-            dbl.setByteOrder(QDataStream::LittleEndian);
-            dbl.device()->seek(bin_offset);
-            extractBinSamples(dbl,sim_points,NumPoints,NumVars,isComplex);
-            int pos = dbl.device()->pos();
-            ngsp_data.seek(pos);
+            ngsp_data_bin.seekg(bin_offset);
+            extractBinSamples(ngsp_data_bin, sim_points, NumPoints, NumVars, isComplex);
+            int pos = ngsp_data_bin.tellg();
+            ngsp_data.seekg(pos);
             isBinary = false;
             continue;
         }
 
-
         if (start_values_sec) {
-            if (!extractASCIISamples(lin,ngsp_data,sim_points,NumVars,isComplex)) continue;
+            if (extractASCIISamples(lin,ngsp_data,sim_points,NumVars,isComplex)) {
+                NumPoints--;
+                if (NumPoints==0) start_values_sec = false;
+            } else continue;
         }
 
-    }*/
+    }
+    ngsp_data.close();
+    ngsp_data_bin.close();
 }
 
 
@@ -262,6 +265,21 @@ void raw2any::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_p
     }
 
     csv.close();
+}
+
+bool raw2any::checkForSWP(char *spice_file)
+{
+    std::ifstream sp_file;
+    std::string line;
+    int cnt=0;
+
+    sp_file.open(spice_file);
+    if (!sp_file.is_open()) return false;
+    while(getline(sp_file,line)) {
+        if (line.find("Plotname:")==std::string::npos) cnt++;
+    }
+    if (cnt>1) return true;
+    else return false;
 }
 
 std::string section(std::string s, std::string sep, int num)

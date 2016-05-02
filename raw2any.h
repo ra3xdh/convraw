@@ -15,6 +15,8 @@ void parseSTEPOutput(char *ngspice_file,
 void writeCSV(char *csv_file,  std::vector< std::vector<double> > &sim_points,
               std::vector<std::string> &var_list, bool isComplex);
 
+bool checkForSWP(char *spice_file);
+
 }
 
 
