@@ -272,7 +272,7 @@ bool raw2any::checkForSWP(char *spice_file)
     sp_file.open(spice_file);
     if (!sp_file.is_open()) return false;
     while(getline(sp_file,line)) {
-        if (line.find("Plotname:")==std::string::npos) cnt++;
+        if (line.find("Plotname:")!=std::string::npos) cnt++;
     }
     if (cnt>1) return true;
     else return false;
@@ -280,7 +280,7 @@ bool raw2any::checkForSWP(char *spice_file)
 
 std::string section(std::string s, std::string sep, int num)
 {
-    unsigned int pos = 0;
+    size_t pos = 0;
     int cnt = 0;
     std::string token;
     std::string ss = s;
@@ -288,8 +288,8 @@ std::string section(std::string s, std::string sep, int num)
     res.clear();
     pos = ss.find_first_not_of(sep);
     ss.erase(0,pos);
-    while (((pos = ss.find(sep)) != std::string::npos)
-           &&(!ss.empty())) {
+    while (!ss.empty()) {
+        pos = ss.find(sep);
         token = ss.substr(0, pos);
         if (cnt==num) {
             res = token;
