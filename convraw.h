@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 
-namespace raw2any {
+namespace convraw {
 
 void parseNgSpiceSimOutput(char *ngspice_file,
                            std::vector< std::vector<double> > &sim_points,

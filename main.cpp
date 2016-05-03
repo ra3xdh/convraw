@@ -14,13 +14,13 @@ int main(int argc, char **argv)
 
     char *infile = argv[1];
     char *ofile = argv[2];
-    if (raw2any::checkForSWP(infile)) {
-        raw2any::parseSTEPOutput(infile,sim_points,VarList,isComplex);
+    if (convraw::checkForSWP(infile)) {
+        convraw::parseSTEPOutput(infile,sim_points,VarList,isComplex);
     } else {
-        raw2any::parseNgSpiceSimOutput(argv[1],sim_points,VarList,isComplex);
+        convraw::parseNgSpiceSimOutput(argv[1],sim_points,VarList,isComplex);
     }
 
-    raw2any::writeCSV(ofile,sim_points,VarList,isComplex);
+    convraw::writeCSV(ofile,sim_points,VarList,isComplex);
 
     exit(0);
 }

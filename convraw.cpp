@@ -1,7 +1,7 @@
 #include "convraw.h"
 
 
-namespace raw2any {
+namespace convraw {
 
     void extractBinSamples(std::ifstream &dbl, std::vector< std::vector<double> > &sim_points,
                                 int NumPoints, int NumVars, bool isComplex);
@@ -13,7 +13,7 @@ namespace raw2any {
 std::string section(std::string s, std::string sep, int num);
 
 
-void raw2any::parseNgSpiceSimOutput(char *ngspice_file,
+void convraw::parseNgSpiceSimOutput(char *ngspice_file,
                                     std::vector < std::vector <double> > &sim_points,
                                     std::vector < std::string > &var_list, bool &isComplex)
 {
@@ -85,7 +85,7 @@ void raw2any::parseNgSpiceSimOutput(char *ngspice_file,
     ngsp_data_bin.close();
 }
 
-void raw2any::parseSTEPOutput(char *ngspice_file,
+void convraw::parseSTEPOutput(char *ngspice_file,
                      std::vector< std::vector<double> > &sim_points,
                      std::vector<std::string> &var_list, bool &isComplex)
 {
@@ -175,7 +175,7 @@ void raw2any::parseSTEPOutput(char *ngspice_file,
 }
 
 
-void raw2any::extractBinSamples(std::ifstream &dbl, std::vector< std::vector<double> > &sim_points,
+void convraw::extractBinSamples(std::ifstream &dbl, std::vector< std::vector<double> > &sim_points,
                                 int NumPoints, int NumVars, bool isComplex)
 {
     int cnt = NumPoints;
@@ -201,7 +201,7 @@ void raw2any::extractBinSamples(std::ifstream &dbl, std::vector< std::vector<dou
     }
 }
 
-bool raw2any::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
+bool convraw::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
                                   std::vector< std::vector<double> > &sim_points,
                                   int NumVars, bool isComplex)
 {
@@ -229,7 +229,7 @@ bool raw2any::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
 }
 
 
-void raw2any::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_points,
+void convraw::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_points,
                        std::vector<std::string> &var_list, bool isComplex)
 {
     std::ofstream csv;
@@ -266,7 +266,7 @@ void raw2any::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_p
     csv.close();
 }
 
-bool raw2any::checkForSWP(char *spice_file)
+bool convraw::checkForSWP(char *spice_file)
 {
     std::ifstream sp_file;
     std::string line;
