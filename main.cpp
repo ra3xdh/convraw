@@ -1,5 +1,6 @@
 #include <iostream>
 #include "convraw.h"
+#include "fileformats.h"
 
 int main(int argc, char **argv)
 {
