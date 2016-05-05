@@ -15,6 +15,10 @@ void parseSTEPOutput(char *ngspice_file,
 
 bool checkForSWP(char *spice_file);
 
+void extractNumDataFromSPICE(char *infile,
+                        std::vector< std::vector<double> > &sim_points,
+                        std::vector<std::string> &var_list, bool &isComplex);
+
 }
 
 

@@ -251,6 +251,18 @@ bool convraw::checkForSWP(char *spice_file)
     else return false;
 }
 
+void convraw::extractNumDataFromSPICE(char *infile,
+                        std::vector< std::vector<double> > &sim_points,
+                        std::vector<std::string> &var_list, bool &isComplex)
+{
+    if (convraw::checkForSWP(infile)) {
+        convraw::parseSTEPOutput(infile,sim_points,var_list,isComplex);
+    } else {
+        convraw::parseNgSpiceSimOutput(infile,sim_points,var_list,isComplex);
+    }
+}
+
+
 std::string section(std::string s, std::string sep, int num)
 {
     size_t pos = 0;

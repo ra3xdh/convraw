@@ -15,12 +15,8 @@ int main(int argc, char **argv)
 
     char *infile = argv[1];
     char *ofile = argv[2];
-    if (convraw::checkForSWP(infile)) {
-        convraw::parseSTEPOutput(infile,sim_points,VarList,isComplex);
-    } else {
-        convraw::parseNgSpiceSimOutput(argv[1],sim_points,VarList,isComplex);
-    }
 
+    convraw::extractNumDataFromSPICE(infile,sim_points,VarList,isComplex);
     convraw::writeCSV(ofile,sim_points,VarList,isComplex);
 
     exit(0);
