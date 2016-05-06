@@ -1,5 +1,11 @@
 #include <octave/oct.h>
 
+#include "../convraw.cpp"
+
+namespace convraw {
+    void fillSimResMatrix(Matrix &res,std::vector< std::vector<double> > &sim_points);
+    void fillSimResCMatrix(ComplexMatrix &res,std::vector< std::vector<double> > &sim_points);
+}
 
 DEFUN_DLD (read_spiceraw, args, nargout,
 	"Usage: read_spiceraw('spice_data.dat')")
@@ -12,8 +18,23 @@ DEFUN_DLD (read_spiceraw, args, nargout,
     } else {
 	bool isComplex = false;
 	std::vector< std::vector <double> > sim_points;
-	Matrix SimRes;
-	ComplexMatrix CSimRes;
+	std::vector< std::string > VarList;
+
+	std::string infile = args(0).string_value();
+
+	convraw::extractNumDataFromSPICE(infile.c_str(),sim_points,VarList,isComplex);
+
+        int c_sz = 0;
+        int r_sz = sim_points.size();
+        if (!sim_points.empty()) c_sz=sim_points[0].size();
+        dim_vector dv(r_sz,c_sz);
+	Matrix SimRes(dv);
+	ComplexMatrix CSimRes(dv);
+    
+
+	if (isComplex) convraw::fillSimResCMatrix(CSimRes,sim_points);
+	else convraw::fillSimResMatrix(SimRes,sim_points);
+
 	if (!error_state) {
 	    if (isComplex) retval(0) = octave_value(CSimRes);
 	    else retval(0) = octave_value(SimRes);
@@ -21,3 +42,21 @@ DEFUN_DLD (read_spiceraw, args, nargout,
     }
     return retval;
 }
+
+
+
+void convraw::fillSimResMatrix(Matrix &res,std::vector< std::vector<double> > &sim_points)
+{
+    int c_sz = 0;
+    int r_sz = sim_points.size();
+    if (!sim_points.empty()) c_sz=sim_points[0].size();
+    for (int i=0;i<r_sz;i++) {
+	for (int j=0;j<c_sz;j++) 
+	    res(i,j) = sim_points[i][j];
+    }
+}
+
+void convraw::fillSimResCMatrix(ComplexMatrix &res,std::vector< std::vector<double> > &sim_points) 
+{
+}
+

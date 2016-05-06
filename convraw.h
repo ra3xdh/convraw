@@ -5,17 +5,17 @@
 
 namespace convraw {
 
-void parseNgSpiceSimOutput(char *ngspice_file,
+void parseNgSpiceSimOutput(const char *ngspice_file,
                            std::vector< std::vector<double> > &sim_points,
                            std::vector<std::string> &var_list, bool &isComplex);
 
-void parseSTEPOutput(char *ngspice_file,
+void parseSTEPOutput(const char *ngspice_file,
                      std::vector< std::vector<double> > &sim_points,
                      std::vector< std::string> &var_list, bool &isComplex);
 
-bool checkForSWP(char *spice_file);
+bool checkForSWP(const char *spice_file);
 
-void extractNumDataFromSPICE(char *infile,
+void extractNumDataFromSPICE(const char *infile,
                         std::vector< std::vector<double> > &sim_points,
                         std::vector<std::string> &var_list, bool &isComplex);
 

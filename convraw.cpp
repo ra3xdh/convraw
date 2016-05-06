@@ -18,7 +18,7 @@ namespace convraw {
 std::string section(std::string s, std::string sep, int num);
 
 
-void convraw::parseNgSpiceSimOutput(char *ngspice_file,
+void convraw::parseNgSpiceSimOutput(const char *ngspice_file,
                                     std::vector < std::vector <double> > &sim_points,
                                     std::vector < std::string > &var_list, bool &isComplex)
 {
@@ -90,7 +90,7 @@ void convraw::parseNgSpiceSimOutput(char *ngspice_file,
     ngsp_data_bin.close();
 }
 
-void convraw::parseSTEPOutput(char *ngspice_file,
+void convraw::parseSTEPOutput(const char *ngspice_file,
                      std::vector< std::vector<double> > &sim_points,
                      std::vector<std::string> &var_list, bool &isComplex)
 {
@@ -236,7 +236,7 @@ bool convraw::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
 
 
 
-bool convraw::checkForSWP(char *spice_file)
+bool convraw::checkForSWP(const char *spice_file)
 {
     std::ifstream sp_file;
     std::string line;
@@ -251,7 +251,7 @@ bool convraw::checkForSWP(char *spice_file)
     else return false;
 }
 
-void convraw::extractNumDataFromSPICE(char *infile,
+void convraw::extractNumDataFromSPICE(const char *infile,
                         std::vector< std::vector<double> > &sim_points,
                         std::vector<std::string> &var_list, bool &isComplex)
 {
