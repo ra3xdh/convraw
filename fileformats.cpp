@@ -20,17 +20,16 @@ void convraw::writeCSV(char *csv_file, std::vector< std::vector<double> > &sim_p
     csv<<s<<std::endl;
     for(int i=0;i<NPoints;i++) {
         std::string ss;
-        ss = std::to_string(sim_points[i][0]) + ";"; // indep.var
-        for (int j=0;j<NVars-1;j++) {
+        for (int j=0;j<NVars;j++) {
             if (isComplex) {
-                std::string re = std::to_string(sim_points[i][2*j+1]);
-                double im_val = sim_points[i][2*j+2];
+                std::string re = std::to_string(sim_points[i][2*j]);
+                double im_val = sim_points[i][2*j+1];
                 std::string im = std::to_string(im_val);
                 ss += re;
                 if (im_val>=0) ss += "+";
                 ss += im + "i" + ";";
             } else {
-                std::string re = std::to_string(sim_points[i][j+1]);
+                std::string re = std::to_string(sim_points[i][j]);
                 ss += re + ";";
             }
         }

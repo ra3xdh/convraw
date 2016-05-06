@@ -187,10 +187,7 @@ void convraw::extractBinSamples(std::ifstream &dbl, std::vector< std::vector<dou
     while (cnt>0) {
         std::vector<double> sim_point;
         double re,im;
-        dbl.read((char *)&re,sizeof(double)); // Indep. variable
-        sim_point.push_back(re);
-        if (isComplex) dbl.read((char *)&im,sizeof(double)); // drop Im part of indep.var
-        for (int i=1;i<NumVars;i++) { // first variable is independent
+        for (int i=0;i<NumVars;i++) { // Read Real. and Imag. part of all variables
             if (isComplex) {
                 dbl.read((char *)&re,sizeof(double)); // Re
                 dbl.read((char *)&im,sizeof(double)); // Im
@@ -211,12 +208,13 @@ bool convraw::extractASCIISamples(std::string &lin, std::ifstream &ngsp_data,
                                   int NumVars, bool isComplex)
 {
     std::vector<double> sim_point;
-    /*bool ok = false;
-    QRegExp dataline_patter("^ *[0-9]+[ \t]+.*"); // ???
-    if (!dataline_patter.exactMatch(lin)) return false;*/
     if (lin.empty()) return false;
-    double indep_val = std::stod(section(lin,"\t",1)); // only real
-    sim_point.push_back(indep_val);
+    double re_indep_val = std::stod(section(lin,"\t",1)); // only real
+    sim_point.push_back(re_indep_val);
+    if (isComplex) {
+        double im_indep_val = std::stod(section(lin,",",1));
+        sim_point.push_back(im_indep_val);
+    }
     for (int i=1;i<NumVars;i++) {
         std::getline(ngsp_data,lin);
         if (isComplex) {
