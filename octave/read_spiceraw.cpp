@@ -8,7 +8,7 @@ namespace convraw {
 }
 
 DEFUN_DLD (read_spiceraw, args, nargout,
-	"Usage: read_spiceraw('spice_data.dat')")
+	"-- Read SPICE-3f5 raw dataset:  DATA = read_spiceraw(FILE)")
 {
     octave_value_list retval;
 
