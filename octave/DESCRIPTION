@@ -1,0 +1,10 @@
+Name: spiceraw
+Version: 0.1
+Date: 2016-09-05
+Author: Vadim Kuznetsov <ra3xdh@gmail.com>
+Maintainer: Vadim Kuznetsov <ra3xdh@gmail.com>
+Title: spiceraw allows to extract data from SPICE-3f5 raw datasets
+Description: spiceraw allows to extract data from SPICE-3f5 raw datasets
+ Provides read_spiceraw() function.
+License: GPL
+

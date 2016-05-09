@@ -1,0 +1,4 @@
+spiceraw >> Datafiles
+SPICE
+ read_spiceraw
+
