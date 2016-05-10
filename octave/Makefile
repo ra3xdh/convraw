@@ -10,5 +10,6 @@ $(FILES): read_spiceraw.cpp ../convraw.cpp
 	$(MKOCTFILE) $(CXXFLAGS) read_spiceraw.cpp
 
 clean:
+	rm *.o
 	rm $(FILES)
 

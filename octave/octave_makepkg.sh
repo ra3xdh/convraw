@@ -20,6 +20,7 @@ mkdir $TMP$WORKDIR/inst
 
 cp $FILES $DEP_SOURCES $TMP$WORKDIR
 cp $SOURCES $TMP$WORKDIR/src
+sed -i $TMP$WORKDIR/src/Makefile -e 's/^MKOCTFILE\=.*//g'
 
 cd $TMP
 tar cvfz $FULL_PKG $WORKDIR
